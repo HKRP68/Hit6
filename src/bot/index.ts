@@ -224,25 +224,25 @@ bot.command("setcooldown", async (ctx) => {
 // --- Callback queries ---
 bot.callbackQuery("hit6", async (ctx) => {
   if (!ctx.from || !ctx.chat) return;
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const result = await playHit6(ctx.from, ctx.chat, ctx.update.update_id);
   await ctx.reply(result.text);
 });
 
 bot.callbackQuery("profile", async (ctx) => {
   if (!ctx.from) return;
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   await ctx.reply(await profile(ctx.from));
 });
 
 bot.callbackQuery("leaderboard", async (ctx) => {
   if (!ctx.chat) return;
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   await ctx.reply(await leaderboard(ctx.chat, ctx.from ? String(ctx.from.id) : undefined));
 });
 
 bot.callbackQuery("help", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   await ctx.reply(helpText());
 });
 
@@ -252,16 +252,16 @@ bot.callbackQuery(/^battle:(accept|decline):(\d+)$/, async (ctx) => {
   const battleId = Number(ctx.match[2]);
   if (action === "decline") {
     const res = await declineChallenge(battleId, String(ctx.from.id));
-    await ctx.answerCallbackQuery();
+    await ctx.answerCallbackQuery().catch(() => {});
     if (res) await ctx.editMessageText(res).catch(() => {});
     return;
   }
   const res = await acceptChallenge(battleId, String(ctx.from.id));
   if (!res) {
-    await ctx.answerCallbackQuery({ text: "This challenge is no longer available." });
+    await ctx.answerCallbackQuery({ text: "This challenge is no longer available." }).catch(() => {});
     return;
   }
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   await ctx.editMessageText(res).catch(async () => {
     await ctx.reply(res);
   });
@@ -270,14 +270,14 @@ bot.callbackQuery(/^battle:(accept|decline):(\d+)$/, async (ctx) => {
 bot.callbackQuery(/^title:(\d+)$/, async (ctx) => {
   if (!ctx.from) return;
   const res = await selectTitle(ctx.from, Number(ctx.match[1]));
-  await ctx.answerCallbackQuery({ text: res });
+  await ctx.answerCallbackQuery({ text: res }).catch(() => {});
   const { text, keyboard } = await titlesView(ctx.from);
   await ctx.editMessageText(text, { reply_markup: keyboard }).catch(() => {});
 });
 
 bot.callbackQuery(/^set:(public|reminder|battles)$/, async (ctx) => {
   if (!ctx.from) return;
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const { text, keyboard } = await toggleSetting(ctx.from, ctx.match[1] as "public" | "reminder" | "battles");
   await ctx.editMessageText(text, { reply_markup: keyboard }).catch(() => {});
 });
