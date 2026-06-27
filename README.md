@@ -58,6 +58,13 @@ npm run typecheck
 npm run build
 ```
 
+## Deployment
+
+See **[DEPLOY.md](./DEPLOY.md)** for step-by-step instructions on Vercel or Render with a
+Neon or Supabase database. The database driver is auto-detected from `DATABASE_URL`
+(Neon → serverless HTTP driver; Supabase/other Postgres → `postgres-js`), overridable with
+`DB_DRIVER=neon|postgres`.
+
 ## Database
 
 The Drizzle schema lives in `src/db/schema.ts`. SQL migrations are in `drizzle/` and are
