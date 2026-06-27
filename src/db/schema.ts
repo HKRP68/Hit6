@@ -9,6 +9,9 @@ export const players = pgTable("players", {
   isBot: boolean("is_bot").notNull().default(false),
   isBanned: boolean("is_banned").notNull().default(false),
   publicRanking: boolean("public_ranking").notNull().default(true),
+  reminderEnabled: boolean("reminder_enabled").notNull().default(false),
+  battleRequestsEnabled: boolean("battle_requests_enabled").notNull().default(true),
+  selectedTitle: varchar("selected_title", { length: 64 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -35,6 +38,9 @@ export const playerStats = pgTable("player_stats", {
   battlesLost: integer("battles_lost").notNull().default(0),
   battlesDrawn: integer("battles_drawn").notNull().default(0),
   highestBattleScore: integer("highest_battle_score").notNull().default(0),
+  battleWinStreak: integer("battle_win_streak").notNull().default(0),
+  bestBattleWinStreak: integer("best_battle_win_streak").notNull().default(0),
+  activeItem: text("active_item"),
   lastHitAt: timestamp("last_hit_at", { withTimezone: true }),
   nextHitAt: timestamp("next_hit_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -60,6 +66,7 @@ export const groupMembers = pgTable("group_members", {
   groupRuns: integer("group_runs").notNull().default(0),
   groupAttempts: integer("group_attempts").notNull().default(0),
   groupLongestSix: integer("group_longest_six").notNull().default(0),
+  groupBattleWins: integer("group_battle_wins").notNull().default(0),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
   lastActiveAt: timestamp("last_active_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({ pk: primaryKey({ columns: [table.telegramChatId, table.telegramUserId] }) }));
@@ -85,3 +92,36 @@ export const achievements = pgTable("achievements", {
   code: text("code").notNull(),
   unlockedAt: timestamp("unlocked_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({ pk: primaryKey({ columns: [table.telegramUserId, table.code] }) }));
+
+export const playerInventory = pgTable("player_inventory", {
+  telegramUserId: text("telegram_user_id").notNull().references(() => players.telegramUserId),
+  itemKey: text("item_key").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({ pk: primaryKey({ columns: [table.telegramUserId, table.itemKey] }) }));
+
+export const battles = pgTable("battles", {
+  id: serial("id").primaryKey(),
+  telegramChatId: text("telegram_chat_id").notNull(),
+  challengerId: text("challenger_id").notNull(),
+  opponentId: text("opponent_id").notNull(),
+  status: text("status").notNull().default("pending"),
+  challengerScore: integer("challenger_score").notNull().default(0),
+  opponentScore: integer("opponent_score").notNull().default(0),
+  winnerId: text("winner_id"),
+  challengeMessageId: text("challenge_message_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+});
+
+export const battleDeliveries = pgTable("battle_deliveries", {
+  id: serial("id").primaryKey(),
+  battleId: integer("battle_id").notNull().references(() => battles.id),
+  telegramUserId: text("telegram_user_id").notNull(),
+  ballNumber: integer("ball_number").notNull(),
+  outcome: text("outcome").notNull(),
+  runs: integer("runs").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
